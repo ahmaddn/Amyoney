@@ -1,113 +1,58 @@
 # Amyoney 🌿
 
 > **Intelligent Personal Finance & Budgeting Assistant**  
-> A mobile-first, cross-platform financial companion built with Expo, React Native, TypeScript, and Firebase. Amyoney combines mindful budgeting, smart receipt scanning, and seamless offline-first capability with a modern fintech aesthetic.
+> Amyoney is a modern, minimalist, and versatile personal finance app designed to help you track cash flow, plan category budgets, scan receipts automatically, and reach your savings goals with discipline.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Application Features
 
-### 1. 📊 Holistic Overview & Dynamic Net Worth Tracking
-- **Real-Time Cash Flow**: Live summary of total net balance, monthly income, monthly expenses, and net savings rate.
-- **Spending Pacing Engine**: Intelligent calculations that analyze month-to-date spending vs. daily safe spending limits to prevent budget overdrafts.
-- **Account & Multi-Wallet Support**: Manage Cash, Bank accounts, and E-Wallets with instant transfer and mutation logs.
+### 1. 📊 Real-Time Cash Flow & Centralized Balance Tracking
+- **Instant Financial Summary**: Live tracking of net balance, monthly income, monthly expenses, and savings rate.
+- **Reactive State (Zero Manual Sync)**: All new transactions, edits, deletions, and balance adjustments appear instantly across all app screens with zero latency.
+- **Daily Spending Pacing**: Evaluates daily spending habits against safe daily expenditure limits to keep your budget healthy until the end of the period.
 
-### 2. 🧾 Smart Receipt Scanner (OCR)
-- **Automatic Receipt Parsing**: Capture a photo with your device camera or upload a receipt from your photo library.
-- **Intelligent Field Extraction**: Automatically extracts the transaction total, date, merchant note, and matches the expense category in seconds.
+### 2. 🎯 Flexible Budgeting & Expense Ceilings
+- **Balance-Backed Budgeting**: Set your spending budget directly from available funds (specific wallet or all combined wallets) to prevent setting unrealistic targets.
+- **Category-Based Allocation**: Allocate your budget across expense categories using exact nominal amounts or proportional percentages (%).
+- **Multi-Period & Date Picker Support**: Configure budgets by custom day count (7, 14, 30 days) or calendar ranges (Current Month, Payday Cycle 25-25, Next 30 Days).
+- **Minimalist Progress Tracking**: Clean progress indicators showing real-time usage and visual status before spending limits are exceeded.
 
-### 3. 🎯 Envelope Budgeting & Expense Caps
-- **Category-Based Budgets**: Allocate explicit monthly ceilings for groceries, dining, utilities, entertainment, and more.
-- **Visual Progress Trackers**: Precision 4px progress indicators with color transitions alerting you before you exceed spending limits.
-- **Smart Recalibration**: Allocate budgets using exact nominal currency or a percentage of your total monthly income.
+### 3. 💳 Multi-Account & Wallet Management
+- **Versatile Account Types**: Manage Cash, Bank accounts, and E-Wallets with isolated mutation histories.
+- **Account Transfers**: Easily move funds between accounts with automatic balance updates and transfer records.
+- **Custom Account Control**: Add new wallets, edit names, account types, custom theme colors, adjust starting balances, or delete unused accounts.
 
-### 4. 💰 Goal Savings & Debt Management (Receivables/Payables)
-- **Dream Goals**: Create customizable financial targets with percentage progress bars and deadline tracking.
-- **Debt & Loan Ledger**: Log money borrowed or lent with contact names, due dates, settlement logs, and repayment status badges.
+### 4. 🧾 Smart Receipt Scanner (OCR)
+- **Automatic Receipt Parsing**: Capture receipts using your device camera or select an existing receipt image from your gallery.
+- **Intelligent Field Extraction**: Automatically extracts the total amount, transaction date, merchant note, and maps to the appropriate expense category.
 
-### 5. 🎨 Bespoke Theme Presets & Instant Currency Conversion
-- **Curated Fintech Color Palettes**:
-  - 🌲 **Emerald Forest**: Deep pine green accented with vibrant lime.
-  - 💎 **Royal Sapphire**: Classic navy blue paired with sky accents.
+### 5. 🏷️ Category Management (Expense & Income)
+- **Default Category Suite**: Pre-configured with essential categories (Food & Dining, Transport, Shopping, Bills & Utilities, Entertainment, Salary, Bonus, etc.).
+- **Custom Categories**: Create, edit, and delete custom categories with tailored icons and theme accent colors.
+
+### 6. 💰 Dream Savings Goals & Debt/Receivables Ledger
+- **Savings Goals**: Set up personalized financial goals with target dates and visual completion progress.
+- **Debts & Loans Ledger**: Track money borrowed and lent, contact names, due dates, repayment status, and partial payment history.
+
+### 7. 💱 Dynamic Live Currency Conversion
+- **Real Market Exchange Rates**: Switching between currencies (IDR, USD, EUR, SGD, JPY) dynamically calculates and converts values based on actual exchange rates, rather than merely swapping symbols.
+- **Offline Resilient Caching**: Exchange rates are cached locally on your device for seamless offline functionality.
+
+### 8. 🎨 Bespoke Theme Presets & Dark Mode
+- **Curated Fintech Palettes**:
+  - 🌲 **Emerald Forest**: Deep pine green paired with fresh lime accents.
+  - 💎 **Royal Sapphire**: Classic navy blue paired with modern sky accents.
   - 🌑 **Midnight Obsidian**: Sleek graphite black with gold amber accents.
   - 🧱 **Nordic Terracotta**: Warm earthy terracotta and burnt orange tones.
-- **Dynamic Favicon & System Bar Synchronization**: Browser tabs and mobile status bars dynamically mirror the active theme preset and logo base64 favicon.
-- **Multi-Currency Support**: Real-time reactive formatting across IDR (Rp), USD ($), EUR (€), SGD (S$), and JPY (¥).
+- **Adaptive Dark & Light Modes**: Full support for both themes tailored for visual comfort.
 
-### 6. ☁️ Real-time Cloud Firestore & Offline-First Mode
-- **Guest Mode (Offline SQLite)**: Full-featured local operation without requiring an account.
-- **Cloud Firestore Synchronization**: Instant bidirectional sync when signed in with Firebase Authentication.
-- **Smart Reconnection Prompt**: Automatically detects network transitions from offline to online and prompts the user to sync pending changes.
+### 9. ☁️ Offline-First & Cloud Synchronization
+- **Guest Mode (Offline SQLite)**: Complete standalone functionality without requiring an account or internet connection.
+- **Cloud Firestore Backup**: Sign in with Google or Email to securely back up and synchronize financial records across devices.
+- **Persistent Session**: Auto-login session retention ensures you never have to sign in repeatedly.
 
-### 7. 🔔 Notifications & Crystal Feedback
-- **Daily Budgeting Reminders**: Configurable local notifications scheduled at 20:00 to keep you accountable.
-- **Crystal Audio Confirmation**: Haptic and harmonic sound cues on successful transaction entries.
-
----
-
-## 🛠️ Technology Stack
-
-- **Framework**: Expo SDK 54 / React Native (Continuous Native Generation)
-- **Routing**: Expo Router (File-based navigation)
-- **State & Theme**: React Context API with dynamic tokens
-- **Database & Sync**:
-  - Local: SQLite (`expo-sqlite`) & Web Local Storage fallback
-  - Cloud: Firebase Authentication & Google Cloud Firestore
-- **Animations**: `react-native-reanimated` & `expo-symbols` / `@expo/vector-icons`
-- **OCR Engine**: Tesseract.js / Client-side pattern recognition
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18 or higher recommended)
-- `npm` or `bun`
-
-### Installation
-```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/Amyoney.git
-cd Amyoney
-
-# 2. Install dependencies
-npm install
-
-# 3. Start Expo development server
-npx expo start
-```
-
-Press `w` in the terminal to launch the web client, or scan the QR code with Expo Go / a Development Build on your Android or iOS device.
-
----
-
-## 🔐 Firebase Authentication & Google Sign-In Setup
-
-If you encounter `Firebase: Error (auth/unauthorized-domain)` when attempting to sign in with Google or email on the web, follow these steps:
-
-1. Open the [Firebase Console](https://console.firebase.google.com/).
-2. Select your project: **`amyoney-app`**.
-3. In the left sidebar, navigate to **Build** → **Authentication**.
-4. Click on the **Settings** tab at the top.
-5. In the **Authorized domains** list, click **Add domain**.
-6. Add the following hostnames:
-   - `localhost`
-   - `127.0.0.1`
-   - *(Optional)* Any custom domain or IP address you use during development (e.g. `192.168.x.x`).
-7. Save your settings and refresh the application page.
-
----
-
-## 📋 Available Scripts
-
-| Command | Purpose |
-| :--- | :--- |
-| `npx expo start` | Starts the Metro bundler dev server |
-| `npx tsc --noEmit` | Runs full TypeScript static typecheck |
-| `npx eslint .` | Runs ESLint analysis across codebase |
-| `npx expo-doctor` | Validates dependencies and Expo SDK compatibility |
-
----
-
-## 📝 License
-This project is licensed under the [MIT License](LICENSE).
+### 10. 🔔 Smart Notifications & Audio Feedback
+- **Daily Evening Reminder**: Scheduled notification at 20:00 to remind you to log your daily spending.
+- **Critical Budget Alerts**: Automated notifications when a category budget exceeds 80% usage.
+- **Haptic & Sound Feedback**: Subtle crystal audio and haptic cues upon saving transactions.
