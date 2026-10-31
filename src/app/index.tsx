@@ -1,98 +1,291 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AddTransactionModal } from '@/components/money/add-transaction-modal';
+import { GuestLockModal } from '@/components/money/guest-lock-modal';
+import { OnlineSyncPromptModal } from '@/components/money/online-sync-prompt-modal';
+import { CustomTabBar, TabKey } from '@/components/navigation/custom-tab-bar';
+import { PatchNotesModal, APP_PATCH_NOTES } from '@/components/settings/patch-notes-modal';
+import { BudgetTab } from '@/components/tabs/budget-tab';
+import { OverviewTab } from '@/components/tabs/overview-tab';
+import { SavingsDebtsTab } from '@/components/tabs/savings-debts-tab';
+import { SettingsTab } from '@/components/tabs/settings-tab';
+import { StatsTab } from '@/components/tabs/stats-tab';
+import { TransactionsTab } from '@/components/tabs/transactions-tab';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useAuth } from '@/context/auth-context';
+import { useAppTheme } from '@/context/theme-context';
+import { useMoneyData } from '@/hooks/use-money-data';
+import { syncLocalToFirebase } from '@/services/sync';
+import AuthScreen from './auth';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+const LAST_SEEN_PATCH_VERSION_KEY = '@amyoney_last_seen_patch_version';
 
-export default function HomeScreen() {
+export default function MainApp() {
+  const { colors } = useAppTheme();
+
+  const { user, isGuest, loading: authLoading, exitGuestMode } = useAuth();
+  const { wallets, categories, addTransaction, addCategory } = useMoneyData();
+
+  const [activeTab, setActiveTab] = useState<TabKey>('index');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [lockedFeatureName, setLockedFeatureName] = useState<string | null>(null);
+  const [showOnlineSyncPrompt, setShowOnlineSyncPrompt] = useState(false);
+  const [isSyncingFromPrompt, setIsSyncingFromPrompt] = useState(false);
+  const [showNewUpdateModal, setShowNewUpdateModal] = useState(false);
+
+  // Deteksi pembaruan versi baru: Otomatis tampilkan modal patch notes saat ada versi baru
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user && !isGuest) return;
+
+    let isMounted = true;
+
+    const checkNewVersion = async () => {
+      try {
+        const latestVersion = APP_PATCH_NOTES[0]?.version;
+        if (!latestVersion) return;
+
+        const lastSeen = await AsyncStorage.getItem(LAST_SEEN_PATCH_VERSION_KEY);
+        if (lastSeen !== latestVersion && isMounted) {
+          // Berikan jeda kecil agar screen index selesai me-render sebelum memunculkan modal
+          setTimeout(() => {
+            if (isMounted) {
+              setShowNewUpdateModal(true);
+            }
+          }, 350);
+        }
+      } catch {
+        // Fallback jika storage gagal diakses
+      }
+    };
+
+    checkNewVersion();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user, isGuest, authLoading]);
+
+  // Deteksi transisi dari offline ke online
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const handleOnline = () => {
+        // Tampilkan modal perintah sync jika pengguna bukan tamu atau memiliki akun
+        if (user && !isGuest) {
+          setShowOnlineSyncPrompt(true);
+        }
+      };
+
+      window.addEventListener('online', handleOnline);
+      return () => {
+        window.removeEventListener('online', handleOnline);
+      };
+    }
+  }, [user, isGuest]);
+
+  const handleExecutePromptSync = async () => {
+    setIsSyncingFromPrompt(true);
+    await syncLocalToFirebase();
+    setIsSyncingFromPrompt(false);
+    setShowOnlineSyncPrompt(false);
+  };
+
+  // 1. Jika masih memeriksa auth, biarkan splash screen menutupi
+  if (authLoading) {
+    return <View style={[styles.container, { backgroundColor: colors.background }]} />;
+  }
+
+  // 2. Auth Gate: Jika belum login dan bukan tamu, tampilkan layar Login
+  if (!user && !isGuest) {
+    return <AuthScreen />;
+  }
+
+  // Judul halaman untuk universal header
+  const getPageTitle = (tab: TabKey) => {
+    switch (tab) {
+      case 'transactions':
+        return 'Riwayat Transaksi';
+      case 'savings':
+        return 'Tabungan & Hutang';
+      case 'stats':
+        return 'Statistik Finansial';
+      case 'budget':
+        return 'Pagu Anggaran';
+      case 'settings':
+        return 'Pengaturan';
+      default:
+        return 'Amyoney';
+    }
+  };
+
+  // 3. User sudah login atau masuk sebagai tamu: Tampilkan Dashboard utama
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
+    <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Universal Top Header (Tampil di setiap tab selain Beranda yang sudah memiliki header terintegrasi) */}
+      {activeTab !== 'index' && (
+        <View style={[styles.universalTopBar, { backgroundColor: colors.backgroundElement, borderBottomColor: colors.border }]}>
+          <ThemedText style={[styles.universalPageTitle, { color: colors.text }]}>
+            {getPageTitle(activeTab)}
           </ThemedText>
-        </ThemedView>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Buka Pengaturan Universal"
+            style={[styles.universalSettingsBtn, { backgroundColor: colors.backgroundSelected, borderColor: colors.border }]}
+            onPress={() => setIsSettingsModalOpen(true)}
+          >
+            <Ionicons name="settings-outline" size={18} color={colors.text} />
+          </Pressable>
+        </View>
+      )}
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+      {/* Konten Tab Aktif */}
+      <View style={styles.contentArea}>
+        {activeTab === 'index' && (
+          <OverviewTab
+            onOpenAddModal={() => setIsAddModalOpen(true)}
+            onOpenAuth={() => setIsSettingsModalOpen(true)}
+            onOpenSettings={() => setIsSettingsModalOpen(true)}
+            onOpenBudget={() => {
+              if (isGuest) {
+                setLockedFeatureName('Pagu Anggaran Bulanan');
+                return;
+              }
+              setActiveTab('budget');
+            }}
+            onOpenStats={() => {
+              if (isGuest) {
+                setLockedFeatureName('Statistik & Analisis Keuangan');
+                return;
+              }
+              setActiveTab('stats');
+            }}
+            onRequireAuth={(name) => setLockedFeatureName(name)}
           />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        )}
+        {activeTab === 'transactions' && <TransactionsTab />}
+        {activeTab === 'savings' && <SavingsDebtsTab />}
+        {activeTab === 'stats' && <StatsTab />}
+        {activeTab === 'budget' && <BudgetTab />}
+        {activeTab === 'settings' && <SettingsTab />}
+      </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      {/* Persistent Bottom Navigation Bar */}
+      <CustomTabBar
+        currentTab={activeTab}
+        onSelectTab={(tab) => {
+          if (isGuest && (tab === 'stats' || tab === 'budget' || tab === 'savings')) {
+            const name =
+              tab === 'stats'
+                ? 'Statistik & Analisis Keuangan'
+                : tab === 'savings'
+                ? 'Tabungan & Buku Hutang'
+                : 'Pagu Anggaran Bulanan';
+            setLockedFeatureName(name);
+            return;
+          }
+          setActiveTab(tab);
+        }}
+        onPressAdd={() => setIsAddModalOpen(true)}
+      />
+
+      {/* Bottom Sheet Modal Catat Transaksi */}
+      <AddTransactionModal
+        visible={isAddModalOpen}
+        wallets={wallets}
+        categories={categories}
+        onClose={() => setIsAddModalOpen(false)}
+        onRequireAuth={(name) => setLockedFeatureName(name)}
+        onAddCategory={async (newCat) => {
+          await addCategory({
+            ...newCat,
+            monthlyBudget: 0,
+          });
+        }}
+        onSubmit={async (data) => {
+          await addTransaction({
+            id: `tx_${Date.now()}`,
+            ...data,
+          });
+        }}
+      />
+
+      {/* Dialog Proteksi Fitur Khusus Tamu */}
+      <GuestLockModal
+        visible={Boolean(lockedFeatureName)}
+        featureName={lockedFeatureName || ''}
+        onClose={() => setLockedFeatureName(null)}
+        onLogin={() => {
+          setLockedFeatureName(null);
+          exitGuestMode();
+        }}
+      />
+
+      {/* Modal Perintah Sync Otomatis Saat Kembali Online */}
+      <OnlineSyncPromptModal
+        visible={showOnlineSyncPrompt}
+        isSyncing={isSyncingFromPrompt}
+        onClose={() => setShowOnlineSyncPrompt(false)}
+        onSync={handleExecutePromptSync}
+      />
+
+      {/* Modal Pengaturan Universal (Bisa dibuka dari halaman manapun) */}
+      <Modal
+        visible={isSettingsModalOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setIsSettingsModalOpen(false)}
+      >
+        <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: colors.background }}>
+          <SettingsTab onClose={() => setIsSettingsModalOpen(false)} />
+        </SafeAreaView>
+      </Modal>
+
+      {/* Modal Otomatis: Tampil saat ada pembaruan fitur / versi baru */}
+      <PatchNotesModal
+        visible={showNewUpdateModal}
+        onClose={async () => {
+          setShowNewUpdateModal(false);
+          const latestVersion = APP_PATCH_NOTES[0]?.version;
+          if (latestVersion) {
+            await AsyncStorage.setItem(LAST_SEEN_PATCH_VERSION_KEY, latestVersion);
+          }
+        }}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  contentArea: {
+    flex: 1,
+  },
+  universalTopBar: {
     flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
   },
-  heroSection: {
+  universalPageTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  universalSettingsBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
   },
 });

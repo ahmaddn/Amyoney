@@ -1,180 +1,316 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { ExternalLink } from '@/components/external-link';
+import { useState } from 'react';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BudgetCard } from '@/components/money/budget-card';
+import { EmptyState } from '@/components/money/empty-state';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Spacing } from '@/constants/theme';
+import { useAppTheme } from '@/context/theme-context';
+import { useMoneyData } from '@/hooks/use-money-data';
+import { Category } from '@/types/money';
+import { formatRupiah } from '@/utils/format';
 
-export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
+export default function ExploreScreen() {
+  const { colors } = useAppTheme();
+  const { categories, budgetProgress, updateCategoryBudget, overview } = useMoneyData();
+
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [budgetInput, setBudgetInput] = useState('');
+
+  const handleOpenEdit = (cat: Category) => {
+    setEditingCategory(cat);
+    setBudgetInput(String(cat.monthlyBudget || ''));
   };
-  const theme = useTheme();
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+  const handleSaveBudget = async () => {
+    if (!editingCategory) return;
+    const amount = parseInt(budgetInput.replace(/[^0-9]/g, ''), 10) || 0;
+    await updateCategoryBudget(editingCategory.id, amount);
+    setEditingCategory(null);
+  };
+
+  const expenseCategories = categories.filter((c) => c.type === 'expense');
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header Layar */}
+        <Animated.View entering={FadeInDown.duration(300).springify()}>
+          <ThemedText style={[styles.screenTitle, { color: colors.text }]}>
+            Pagu Anggaran
+          </ThemedText>
+          <ThemedText style={[styles.subText, { color: colors.textSecondary }]}>
+            Disiplin finansial melalui sistem alokasi batas per kategori belanja.
+          </ThemedText>
+        </Animated.View>
+
+        {/* Ringkasan Pagu Hero Metric */}
+        <Animated.View entering={FadeInDown.delay(100).duration(350).springify()} style={[styles.overviewCard, { backgroundColor: colors.backgroundElement, borderColor: colors.border }]}>
+          <View style={styles.metricRow}>
+            <View>
+              <ThemedText style={[styles.metricLabel, { color: colors.textSecondary }]}>
+                TOTAL PAGU BULANAN
+              </ThemedText>
+              <ThemedText style={[styles.metricVal, { color: colors.text }]}>
+                {formatRupiah(overview.totalAllocatedBudget)}
+              </ThemedText>
+            </View>
+            <View style={styles.rightMetric}>
+              <ThemedText style={[styles.metricLabel, { color: colors.textSecondary }]}>
+                REALISASI BELANJA
+              </ThemedText>
+              <ThemedText style={[styles.metricVal, { color: colors.expense }]}>
+                {formatRupiah(overview.totalBudgetSpent)}
+              </ThemedText>
+            </View>
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(150).duration(350).springify()}>
+          <ThemedText style={[styles.sectionHeading, { color: colors.text }]}>
+            Pagu Kategori Aktif
           </ThemedText>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
-                />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
-        </ThemedView>
+          {budgetProgress.length === 0 ? (
+            <EmptyState
+              title="Belum Ada Target Budget"
+              description="Pilih salah satu kategori pengeluaran di bawah untuk menentukan target anggaran bulanan Anda."
+            />
+          ) : (
+            budgetProgress.map((bp) => (
+              <BudgetCard key={bp.category.id} progress={bp} onEditBudget={handleOpenEdit} />
+            ))
+          )}
+        </Animated.View>
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+        <Animated.View entering={FadeInDown.delay(200).duration(350).springify()}>
+          <ThemedText style={[styles.sectionHeading, { color: colors.text, marginTop: 18 }]}>
+            Semua Kategori Belanja
+          </ThemedText>
 
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
+          <View style={[styles.categoryList, { backgroundColor: colors.backgroundElement, borderColor: colors.border }]}>
+            {expenseCategories.map((cat) => (
+              <View key={cat.id} style={[styles.catRow, { borderBottomColor: colors.border }]}>
+                <View style={styles.catInfo}>
+                  <ThemedText style={[styles.catName, { color: colors.text }]}>{cat.name}</ThemedText>
+                  <ThemedText style={[styles.catSub, { color: colors.textSecondary }]}>
+                    {cat.monthlyBudget > 0
+                      ? `Pagu: ${formatRupiah(cat.monthlyBudget)}/bln`
+                      : 'Belum diatur'}
+                  </ThemedText>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Atur budget ${cat.name}`}
+                  style={[styles.editCatBtn, { borderColor: colors.border }]}
+                  onPress={() => handleOpenEdit(cat)}
+                >
+                  <ThemedText style={[styles.editCatText, { color: colors.text }]}>
+                    {cat.monthlyBudget > 0 ? 'Edit' : 'Atur Pagu'}
+                  </ThemedText>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        </Animated.View>
+      </ScrollView>
 
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
+      {/* Modal Edit Pagu */}
+      <Modal visible={Boolean(editingCategory)} transparent={true} animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalBox, { backgroundColor: colors.backgroundElement }]}>
+            <ThemedText style={[styles.modalTitle, { color: colors.text }]}>
+              Atur Pagu Anggaran
             </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+            <ThemedText style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+              Kategori: {editingCategory?.name}
+            </ThemedText>
 
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+            <TextInput
+              style={[
+                styles.modalInput,
+                {
+                  color: colors.text,
+                  backgroundColor: colors.backgroundSelected,
+                  borderColor: colors.border,
+                },
+              ]}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor={colors.textSecondary}
+              value={budgetInput}
+              onChangeText={setBudgetInput}
+            />
 
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+            <View style={styles.modalBtnRow}>
+              <Pressable
+                style={[styles.cancelBtn, { borderColor: colors.border }]}
+                onPress={() => setEditingCategory(null)}
+              >
+                <ThemedText style={[styles.btnText, { color: colors.text }]}>Batal</ThemedText>
+              </Pressable>
+              <Pressable
+                style={[styles.saveBtn, { backgroundColor: colors.brandPrimary }]}
+                onPress={handleSaveBudget}
+              >
+                <ThemedText style={[styles.btnText, { color: '#FFFFFF' }]}>
+                  Simpan Pagu
+                </ThemedText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  safeArea: {
     flex: 1,
   },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
   container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
+    padding: Spacing.four,
+    paddingBottom: 40,
   },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+  screenTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: -0.6,
   },
-  centerText: {
-    textAlign: 'center',
+  subText: {
+    fontSize: 13,
+    marginTop: 4,
+    marginBottom: 20,
+    lineHeight: 18,
   },
-  pressed: {
-    opacity: 0.7,
+  overviewCard: {
+    padding: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 24,
   },
-  linkButton: {
+  metricRow: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
+    justifyContent: 'space-between',
+  },
+  rightMetric: {
+    alignItems: 'flex-end',
+  },
+  metricLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  metricVal: {
+    fontSize: 18,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.3,
+  },
+  sectionHeading: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    marginBottom: 12,
+  },
+  categoryList: {
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+  },
+  catRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    minHeight: 60,
+  },
+  catInfo: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  catName: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  catSub: {
+    fontSize: 12,
+  },
+  editCatBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  editCatText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modalBackdrop: {
+    flex: 1,
     justifyContent: 'center',
-    gap: Spacing.one,
     alignItems: 'center',
+    backgroundColor: 'rgba(17, 22, 20, 0.45)',
+    padding: 24,
   },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: 'center',
-  },
-  imageTutorial: {
+  modalBox: {
     width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
+    maxWidth: 400,
+    borderRadius: 20,
+    padding: 24,
   },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    marginBottom: 18,
+  },
+  modalInput: {
+    height: 50,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 20,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  saveBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  btnText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

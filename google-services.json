@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "794729862927",
+    "project_id": "amyoney-c1ce5",
+    "storage_bucket": "amyoney-c1ce5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:794729862927:android:e7597ffe671e52fd48507a",
+        "android_client_info": {
+          "package_name": "com.company.amyoney"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "794729862927-66q06t8v65gdamm0357gob47qvm07gm1.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "794729862927-gf1k589o40asbs9m7f0128pp4590fjsa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.company.amyoney",
+            "certificate_hash": "e337e70723e1b663dc2aa1706fe5d202af63ee47"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQCMKRUikZlOE5eaUKHUwNz-wEL--FG-Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "794729862927-66q06t8v65gdamm0357gob47qvm07gm1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

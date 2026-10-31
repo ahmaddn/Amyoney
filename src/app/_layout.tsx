@@ -1,18 +1,41 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+
+// Menangkap callback redirect autentikasi global di seluruh aplikasi
+WebBrowser.maybeCompleteAuthSession();
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { AuthProvider, useAuth } from '@/context/auth-context';
+import { MoneyProvider } from '@/context/money-context';
+import { ThemeProvider, useAppTheme } from '@/context/theme-context';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+function RootContent() {
+  const { resolvedTheme } = useAppTheme();
+  const { loading: authLoading } = useAuth();
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+    <NavThemeProvider value={resolvedTheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <AnimatedSplashOverlay ready={!authLoading} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="auth" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="explore" />
+      </Stack>
+    </NavThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <MoneyProvider>
+          <RootContent />
+        </MoneyProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

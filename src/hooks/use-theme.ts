@@ -3,12 +3,10 @@
  * https://docs.expo.dev/guides/color-schemes/
  */
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AppThemeColors } from '@/constants/theme';
+import { useAppTheme } from '@/context/theme-context';
 
-export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'dark' ? 'dark' : 'light';
-
-  return Colors[theme];
+export function useTheme(): AppThemeColors {
+  const { colors } = useAppTheme();
+  return colors;
 }

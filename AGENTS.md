@@ -39,3 +39,29 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Mandatory Patch Notes & EAS OTA Update Rule
+Setiap kali melakukan perubahan, penambahan fitur, perbaikan bug, atau refactoring sekecil apapun, Anda **WAJIB**:
+1. Memperbarui riwayat Patch Notes di:
+   - **Modal In-App**: [patch-notes-modal.tsx](file:///d:/laragon/www/Amyoney/src/components/settings/patch-notes-modal.tsx) pada array `APP_PATCH_NOTES`.
+   - **Dokumen Markdown**: [.agents/PATCH_NOTES.md](file:///d:/laragon/www/Amyoney/.agents/PATCH_NOTES.md).
+2. Memverifikasi validasi `npx tsc --noEmit`.
+3. Mempublikasikan pembaruan langsung ke pengguna via EAS OTA Update:
+   ```bash
+   eas update --branch preview --message "<Ringkasan perubahan>"
+   ```
+   (Atau gunakan `npx eas-cli update --branch preview --message "<Ringkasan>"` jika di lingkungan CI/CLI non-global).
+Perubahan harus langsung tampak di modal Catatan Pembaruan pengguna dan terkirim otomatis lewat OTA Update.
+
+<!-- antislop:start -->
+## antislop
+For UI, copy, people, mobile layout, or code comments work, read these installed skill files directly (use these paths even if a same-named global skill exists):
+- Core filter, always on: `antislop`: `.agents/skills/antislop/SKILL.md`
+- UI / visual: `antislop-ui`: `.agents/skills/antislop-ui/SKILL.md`
+- Copy & text: `antislop-copywriting`: `.agents/skills/antislop-copywriting/SKILL.md`
+- People: `antislop-human`: `.agents/skills/antislop-human/SKILL.md`
+Before starting, follow the core's "Two Usage Modes" section in strict order: explicit session instruction first, then global preference, then ask. A session instruction always wins. For a resolved mode, say `antislop active: <mode> (session override).` or `antislop active: <mode> (global preference).` once before presenting findings or making edits, using the actual mode and source. Acknowledging the user's request without naming the source does not replace this notice.
+Only an explicit choice of antislop during or after selects a session mode. A request to review, audit, or avoid file edits does not select a mode; read the global preference in that case. Another skill's mode does not select antislop's mode.
+If the mode is unresolved, ask during/after and end the response; wait for the answer before any UI review, planning, or concept. For read-only tasks, put the active-mode notice only at the start of the final answer, never in progress messages. For editing tasks, announce before the first edit and omit it from the final answer.
+To update antislop later: `npx antislop-ai --update`, or run `npx antislop-ai` and pick Overwrite them.
+<!-- antislop:end -->

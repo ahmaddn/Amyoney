@@ -1,56 +1,113 @@
-# Welcome to your Expo app 👋
+# Amyoney 🌿
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> **Intelligent Personal Finance & Budgeting Assistant**  
+> A mobile-first, cross-platform financial companion built with Expo, React Native, TypeScript, and Firebase. Amyoney combines mindful budgeting, smart receipt scanning, and seamless offline-first capability with a modern fintech aesthetic.
 
-## Get started
+---
 
-1. Install dependencies
+## 🌟 Key Features
 
-   ```bash
-   npm install
-   ```
+### 1. 📊 Holistic Overview & Dynamic Net Worth Tracking
+- **Real-Time Cash Flow**: Live summary of total net balance, monthly income, monthly expenses, and net savings rate.
+- **Spending Pacing Engine**: Intelligent calculations that analyze month-to-date spending vs. daily safe spending limits to prevent budget overdrafts.
+- **Account & Multi-Wallet Support**: Manage Cash, Bank accounts, and E-Wallets with instant transfer and mutation logs.
 
-2. Start the app
+### 2. 🧾 Smart Receipt Scanner (OCR)
+- **Automatic Receipt Parsing**: Capture a photo with your device camera or upload a receipt from your photo library.
+- **Intelligent Field Extraction**: Automatically extracts the transaction total, date, merchant note, and matches the expense category in seconds.
 
-   ```bash
-   npx expo start
-   ```
+### 3. 🎯 Envelope Budgeting & Expense Caps
+- **Category-Based Budgets**: Allocate explicit monthly ceilings for groceries, dining, utilities, entertainment, and more.
+- **Visual Progress Trackers**: Precision 4px progress indicators with color transitions alerting you before you exceed spending limits.
+- **Smart Recalibration**: Allocate budgets using exact nominal currency or a percentage of your total monthly income.
 
-In the output, you'll find options to open the app in a
+### 4. 💰 Goal Savings & Debt Management (Receivables/Payables)
+- **Dream Goals**: Create customizable financial targets with percentage progress bars and deadline tracking.
+- **Debt & Loan Ledger**: Log money borrowed or lent with contact names, due dates, settlement logs, and repayment status badges.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 5. 🎨 Bespoke Theme Presets & Instant Currency Conversion
+- **Curated Fintech Color Palettes**:
+  - 🌲 **Emerald Forest**: Deep pine green accented with vibrant lime.
+  - 💎 **Royal Sapphire**: Classic navy blue paired with sky accents.
+  - 🌑 **Midnight Obsidian**: Sleek graphite black with gold amber accents.
+  - 🧱 **Nordic Terracotta**: Warm earthy terracotta and burnt orange tones.
+- **Dynamic Favicon & System Bar Synchronization**: Browser tabs and mobile status bars dynamically mirror the active theme preset and logo base64 favicon.
+- **Multi-Currency Support**: Real-time reactive formatting across IDR (Rp), USD ($), EUR (€), SGD (S$), and JPY (¥).
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### 6. ☁️ Real-time Cloud Firestore & Offline-First Mode
+- **Guest Mode (Offline SQLite)**: Full-featured local operation without requiring an account.
+- **Cloud Firestore Synchronization**: Instant bidirectional sync when signed in with Firebase Authentication.
+- **Smart Reconnection Prompt**: Automatically detects network transitions from offline to online and prompts the user to sync pending changes.
 
-## Get a fresh project
+### 7. 🔔 Notifications & Crystal Feedback
+- **Daily Budgeting Reminders**: Configurable local notifications scheduled at 20:00 to keep you accountable.
+- **Crystal Audio Confirmation**: Haptic and harmonic sound cues on successful transaction entries.
 
-When you're ready, run:
+---
 
+## 🛠️ Technology Stack
+
+- **Framework**: Expo SDK 54 / React Native (Continuous Native Generation)
+- **Routing**: Expo Router (File-based navigation)
+- **State & Theme**: React Context API with dynamic tokens
+- **Database & Sync**:
+  - Local: SQLite (`expo-sqlite`) & Web Local Storage fallback
+  - Cloud: Firebase Authentication & Google Cloud Firestore
+- **Animations**: `react-native-reanimated` & `expo-symbols` / `@expo/vector-icons`
+- **OCR Engine**: Tesseract.js / Client-side pattern recognition
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- `npm` or `bun`
+
+### Installation
 ```bash
-npm run reset-project
+# 1. Clone the repository
+git clone https://github.com/your-username/Amyoney.git
+cd Amyoney
+
+# 2. Install dependencies
+npm install
+
+# 3. Start Expo development server
+npx expo start
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Press `w` in the terminal to launch the web client, or scan the QR code with Expo Go / a Development Build on your Android or iOS device.
 
-### Other setup steps
+---
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## 🔐 Firebase Authentication & Google Sign-In Setup
 
-## Learn more
+If you encounter `Firebase: Error (auth/unauthorized-domain)` when attempting to sign in with Google or email on the web, follow these steps:
 
-To learn more about developing your project with Expo, look at the following resources:
+1. Open the [Firebase Console](https://console.firebase.google.com/).
+2. Select your project: **`amyoney-app`**.
+3. In the left sidebar, navigate to **Build** → **Authentication**.
+4. Click on the **Settings** tab at the top.
+5. In the **Authorized domains** list, click **Add domain**.
+6. Add the following hostnames:
+   - `localhost`
+   - `127.0.0.1`
+   - *(Optional)* Any custom domain or IP address you use during development (e.g. `192.168.x.x`).
+7. Save your settings and refresh the application page.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## 📋 Available Scripts
 
-Join our community of developers creating universal apps.
+| Command | Purpose |
+| :--- | :--- |
+| `npx expo start` | Starts the Metro bundler dev server |
+| `npx tsc --noEmit` | Runs full TypeScript static typecheck |
+| `npx eslint .` | Runs ESLint analysis across codebase |
+| `npx expo-doctor` | Validates dependencies and Expo SDK compatibility |
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+## 📝 License
+This project is licensed under the [MIT License](LICENSE).

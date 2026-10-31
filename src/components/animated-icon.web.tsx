@@ -1,108 +1,97 @@
-import { Image } from 'expo-image';
-import { StyleSheet, View } from 'react-native';
-import Animated, { Keyframe, Easing } from 'react-native-reanimated';
+import { useEffect, useState } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
-import classes from './animated-icon.module.css';
-const DURATION = 300;
+import { useAppTheme } from '@/context/theme-context';
 
-export function AnimatedSplashOverlay() {
-  return null;
+interface AnimatedSplashOverlayProps {
+  ready?: boolean;
 }
 
-const keyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 0 }],
-  },
-  60: {
-    transform: [{ scale: 1.2 }],
-    easing: Easing.elastic(1.2),
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(1.2),
-  },
-});
+const PRESET_ICONS = {
+  forest: require('@/assets/images/icon-forest.png'),
+  sapphire: require('@/assets/images/icon-sapphire.png'),
+  obsidian: require('@/assets/images/icon-obsidian.png'),
+  terracotta: require('@/assets/images/icon-terracotta.png'),
+};
 
-const logoKeyframe = new Keyframe({
-  0: {
-    opacity: 0,
-  },
-  60: {
-    transform: [{ scale: 1.2 }],
-    opacity: 0,
-    easing: Easing.elastic(1.2),
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    opacity: 1,
-    easing: Easing.elastic(1.2),
-  },
-});
+export function AnimatedSplashOverlay({ ready = true }: AnimatedSplashOverlayProps) {
+  const { colorPreset, colors } = useAppTheme();
+  const [visible, setVisible] = useState(true);
+  const [opacity, setOpacity] = useState(1);
 
-const glowKeyframe = new Keyframe({
-  0: {
-    transform: [{ rotateZ: '-180deg' }, { scale: 0.8 }],
-    opacity: 0,
-  },
-  [DURATION / 1000]: {
-    transform: [{ rotateZ: '0deg' }, { scale: 1 }],
-    opacity: 1,
-    easing: Easing.elastic(0.7),
-  },
-  100: {
-    transform: [{ rotateZ: '7200deg' }],
-  },
-});
+  useEffect(() => {
+    if (!ready) return;
 
-export function AnimatedIcon() {
+    // Tunggu 500ms agar splash screen dinikmati pengguna secara elegan
+    const timer = setTimeout(() => {
+      setOpacity(0);
+      const hideTimer = setTimeout(() => setVisible(false), 400);
+      return () => clearTimeout(hideTimer);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [ready]);
+
+  if (!visible) return null;
+
+  const activeIcon = PRESET_ICONS[colorPreset] || PRESET_ICONS.forest;
+
   return (
-    <View style={styles.iconContainer}>
-      <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
-        <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />
-      </Animated.View>
-
-      <Animated.View style={styles.background} entering={keyframe.duration(DURATION)}>
-        <div className={classes.expoLogoBackground} />
-      </Animated.View>
-
-      <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
-      </Animated.View>
+    <View style={[styles.splashOverlay, { opacity, backgroundColor: colors.heroBg }]}>
+      <View style={styles.brandContainer}>
+        <Image
+          source={activeIcon}
+          style={styles.splashLogo}
+          resizeMode="contain"
+          fadeDuration={0}
+        />
+        <Text style={[styles.brandTitle, { color: colors.heroText }]}>
+          Amyoney<Text style={{ color: colors.heroAccent }}>.</Text>
+        </Text>
+        <Text style={[styles.brandSubtitle, { color: colors.textSecondary }]}>Personal Money & Budget</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    width: '100%',
-    zIndex: 1000,
+  splashOverlay: {
     position: 'absolute',
-    top: 128 / 2 + 138,
-  },
-  imageContainer: {
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#173D32',
+    alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 999999,
+    transitionProperty: 'opacity',
+    transitionDuration: '400ms',
+  } as any,
+  brandContainer: {
     alignItems: 'center',
-  },
-  glow: {
-    width: 201,
-    height: 201,
-    position: 'absolute',
-  },
-  iconContainer: {
     justifyContent: 'center',
-    alignItems: 'center',
-    width: 128,
-    height: 128,
   },
-  image: {
-    position: 'absolute',
-    width: 76,
-    height: 71,
+  splashLogo: {
+    width: 84,
+    height: 84,
+    borderRadius: 24,
+    marginBottom: 16,
   },
-  background: {
-    width: 128,
-    height: 128,
-    position: 'absolute',
+  brandTitle: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: '#F7F8F5',
+    letterSpacing: -0.8,
+  },
+  limeDot: {
+    color: '#C9F36A',
+  },
+  brandSubtitle: {
+    fontSize: 13,
+    color: '#A2B3AC',
+    marginTop: 6,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
 });
