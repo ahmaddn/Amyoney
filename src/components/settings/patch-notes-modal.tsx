@@ -14,6 +14,27 @@ export interface PatchNoteItem {
 
 export const APP_PATCH_NOTES: PatchNoteItem[] = [
   {
+    version: '1.3.3',
+    date: '2 November 2026',
+    title: 'Persistensi Tema & Sinkronisasi Warna Splash Screen Native',
+    highlights: [
+      'Penyimpanan Tema Permanen di HP (AsyncStorage): Memperbaiki bug di mana warna tema (Forest, Sapphire, Obsidian, Terracotta) dan mode gelap/terang kembali ke default setelah aplikasi ditutup. Preferensi kini tersimpan permanen di penyimpanan native perangkat.',
+      'Splash Screen Mengikuti Warna Tema: Splash screen pembuka aplikasi kini membaca preset tema tersimpan secara sinkron sebelum overlay menghilang, sehingga warna latar dan ikon splash selalu serasi dengan tema yang Anda pilih.',
+      'Persistensi Mata Uang & Valuta: Pilihan mata uang (IDR, USD, EUR, SGD, JPY) kini juga tersimpan permanen di perangkat tanpa ter-reset saat aplikasi di-close.',
+    ],
+  },
+  {
+    version: '1.3.2',
+    date: '2 November 2026',
+    title: 'Desain Input Transaksi Terintegrasi & Penyempurnaan Riwayat Transaksi',
+    highlights: [
+      'Input Transaksi Terintegrasi Baru: Tata letak baru yang modern dan ergonomis dengan header ringkas, grid kategori 4-kolom yang luas, input nominal besar, dan baris catatan terpadu shortcut scanner struk.',
+      'Keypad Angka Bawaan (Built-in Numeric Keypad): Mengetik angka kini instan menggunakan keypad bawaan aplikasi lengkap dengan tombol "000", tombol shortcut tanggal ("Hari ini" / picker), serta tombol simpan centang (✓) tanpa perlu memunculkan keyboard sistem yang menggeser layar.',
+      'Perbaikan Riwayat Transaksi: Nama kategori asli kini selalu tampil sebagai judul utama transaksi, avatar inisial digantikan dengan ikon grafis kategori berwarna, dan catatan transaksi tampil rapi di baris kedua.',
+      'Modal Rincian Transaksi Lengkap: Mengetuk item riwayat transaksi kini membuka kartu detail utuh untuk membaca catatan panjang tanpa terpotong kaku, info dompet sumber/tujuan, serta opsi hapus yang aman.',
+    ],
+  },
+  {
     version: '1.3.1',
     date: '31 Oktober 2026',
     title: 'Desain Minimalis Modern Pagu Anggaran & Bottom Sheet Sticky Footer',

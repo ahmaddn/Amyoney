@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme as useDeviceColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppThemeColors, ColorPreset, Colors, PalettePresets } from '@/constants/theme';
 import { FAVICON_DATA_URIS } from '@/constants/favicons';
 import { CurrencyCode, setActiveCurrency as setGlobalCurrency } from '@/utils/format';
@@ -12,6 +13,7 @@ interface ThemeContextType {
   colorPreset: ColorPreset;
   currency: CurrencyCode;
   colors: AppThemeColors;
+  isThemeLoaded: boolean;
   setThemeMode: (mode: ThemeMode) => void;
   setColorPreset: (preset: ColorPreset) => void;
   setCurrency: (currency: CurrencyCode) => void;
@@ -24,6 +26,7 @@ const ThemeContext = createContext<ThemeContextType>({
   colorPreset: 'forest',
   currency: 'IDR',
   colors: Colors.light,
+  isThemeLoaded: false,
   setThemeMode: () => {},
   setColorPreset: () => {},
   setCurrency: () => {},
@@ -39,34 +42,69 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
   const [colorPreset, setColorPresetState] = useState<ColorPreset>('forest');
   const [currency, setCurrencyState] = useState<CurrencyCode>('IDR');
+  const [isThemeLoaded, setIsThemeLoaded] = useState(false);
 
+  // Muat tema, preset warna, dan mata uang dari AsyncStorage (Native) dan localStorage (Web)
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null;
-        if (savedTheme && (savedTheme === 'system' || savedTheme === 'light' || savedTheme === 'dark')) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setThemeModeState(savedTheme);
+    let isMounted = true;
+    const loadStoredPreferences = async () => {
+      try {
+        let savedTheme: string | null = null;
+        let savedPreset: string | null = null;
+        let savedCurr: string | null = null;
+
+        // Cek AsyncStorage terlebih dahulu (Lintas platform: Android, iOS, Web)
+        try {
+          const [t, p, c] = await Promise.all([
+            AsyncStorage.getItem(THEME_STORAGE_KEY),
+            AsyncStorage.getItem(PRESET_STORAGE_KEY),
+            AsyncStorage.getItem(CURRENCY_STORAGE_KEY),
+          ]);
+          savedTheme = t;
+          savedPreset = p;
+          savedCurr = c;
+        } catch {
+          // Fallback ke window.localStorage jika AsyncStorage gagal di lingkungan web tertentu
+          if (typeof window !== 'undefined' && window.localStorage) {
+            savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+            savedPreset = window.localStorage.getItem(PRESET_STORAGE_KEY);
+            savedCurr = window.localStorage.getItem(CURRENCY_STORAGE_KEY);
+          }
         }
 
-        const savedPreset = window.localStorage.getItem(PRESET_STORAGE_KEY) as ColorPreset | null;
-        if (savedPreset && PalettePresets[savedPreset]) {
-          setColorPresetState(savedPreset);
-        }
+        if (isMounted) {
+          if (savedTheme && (savedTheme === 'system' || savedTheme === 'light' || savedTheme === 'dark')) {
+            setThemeModeState(savedTheme as ThemeMode);
+          }
 
-        const savedCurr = window.localStorage.getItem(CURRENCY_STORAGE_KEY) as CurrencyCode | null;
-        if (savedCurr) {
-          setCurrencyState(savedCurr);
-          setGlobalCurrency(savedCurr);
+          if (savedPreset && PalettePresets[savedPreset as ColorPreset]) {
+            setColorPresetState(savedPreset as ColorPreset);
+          }
+
+          if (savedCurr) {
+            setCurrencyState(savedCurr as CurrencyCode);
+            setGlobalCurrency(savedCurr as CurrencyCode);
+          }
+
+          setIsThemeLoaded(true);
+        }
+      } catch {
+        if (isMounted) {
+          setIsThemeLoaded(true);
         }
       }
-    } catch {
-      // Storage access fallback
-    }
+    };
+
+    loadStoredPreferences();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const setThemeMode = (mode: ThemeMode) => {
     setThemeModeState(mode);
+    AsyncStorage.setItem(THEME_STORAGE_KEY, mode).catch(() => {});
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.setItem(THEME_STORAGE_KEY, mode);
@@ -121,6 +159,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setColorPreset = (preset: ColorPreset) => {
     setColorPresetState(preset);
     updateWebFaviconAndTheme(preset);
+    AsyncStorage.setItem(PRESET_STORAGE_KEY, preset).catch(() => {});
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.setItem(PRESET_STORAGE_KEY, preset);
@@ -133,6 +172,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setCurrency = (code: CurrencyCode) => {
     setCurrencyState(code);
     setGlobalCurrency(code);
+    AsyncStorage.setItem(CURRENCY_STORAGE_KEY, code).catch(() => {});
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.setItem(CURRENCY_STORAGE_KEY, code);
@@ -183,6 +223,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         colorPreset,
         currency,
         colors: dynamicColors,
+        isThemeLoaded,
         setThemeMode,
         setColorPreset,
         setCurrency,

@@ -13,12 +13,12 @@ import { ThemeProvider, useAppTheme } from '@/context/theme-context';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootContent() {
-  const { resolvedTheme } = useAppTheme();
+  const { resolvedTheme, isThemeLoaded } = useAppTheme();
   const { loading: authLoading } = useAuth();
 
   return (
     <NavThemeProvider value={resolvedTheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay ready={!authLoading} />
+      <AnimatedSplashOverlay ready={!authLoading && isThemeLoaded} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="auth" options={{ presentation: 'modal' }} />

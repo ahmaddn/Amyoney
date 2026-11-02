@@ -362,8 +362,10 @@ export function SettingsTab({ onClose }: SettingsTabProps = {}) {
 
         <View style={styles.preferenceRow}>
           <View style={styles.prefTextCol}>
-            <ThemedText style={[styles.prefTitle, { color: colors.text }]}>Getaran Respon (Haptic)</ThemedText>
-            <ThemedText style={[styles.prefDesc, { color: colors.textSecondary }]}>Respon sentuhan saat menekan tombol</ThemedText>
+            <ThemedText style={[styles.prefTitle, { color: colors.text }]}>Respon Suara Konfirmasi</ThemedText>
+            <ThemedText style={[styles.prefDesc, { color: colors.textSecondary }]}>
+              Efek audio jernih (harmonic chime) saat berhasil menyimpan transaksi atau mutasi kas
+            </ThemedText>
           </View>
           <Switch
             value={hapticFeedback}

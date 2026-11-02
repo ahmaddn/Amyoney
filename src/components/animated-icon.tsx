@@ -1,4 +1,5 @@
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
@@ -6,7 +7,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { useAppTheme } from '@/context/theme-context';
 
-const DURATION = 400;
+const DURATION = 500;
 
 interface AnimatedSplashOverlayProps {
   ready?: boolean;
@@ -20,17 +21,29 @@ const PRESET_ICONS = {
 };
 
 export function AnimatedSplashOverlay({ ready = true }: AnimatedSplashOverlayProps) {
-  const { colorPreset, colors } = useAppTheme();
+  const { colorPreset, colors, isThemeLoaded } = useAppTheme();
   const [animate, setAnimate] = useState(false);
   const [visible, setVisible] = useState(true);
 
+  // Sinkronkan latar belakang SystemUI root window dengan warna heroBg tema yang dipilih
   useEffect(() => {
-    if (ready && !animate) {
-      SplashScreen.hideAsync().finally(() => {
-        setAnimate(true);
-      });
+    if (colors?.heroBg) {
+      SystemUI.setBackgroundColorAsync(colors.heroBg).catch(() => {});
     }
-  }, [ready, animate]);
+  }, [colors?.heroBg]);
+
+  useEffect(() => {
+    // Tunggu sampai tema benar-benar selesai dimuat dari penyimpanan perangkat
+    if (ready && isThemeLoaded && !animate) {
+      // Sembunyikan splash screen native bawaan OS setelah frame pertama tema termuat
+      const timer = setTimeout(() => {
+        SplashScreen.hideAsync().finally(() => {
+          setAnimate(true);
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [ready, isThemeLoaded, animate]);
 
   if (!visible) return null;
 
