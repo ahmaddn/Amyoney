@@ -14,6 +14,25 @@ export interface PatchNoteItem {
 
 export const APP_PATCH_NOTES: PatchNoteItem[] = [
   {
+    version: '1.3.5',
+    date: '4 November 2026',
+    title: 'Persistensi Sesi Login Mobile & Dialog Pemilihan Akun Google',
+    highlights: [
+      'Penyimpanan Sesi Login Permanen di Mobile: Memperbaiki adapter persistensi Firebase Auth dengan implementasi custom AsyncStorage Persistence khusus Android/iOS. Sesi login Anda kini tidak akan ter-logout otomatis saat aplikasi ditutup atau dimatikan.',
+      'Dialog Pemilihan Akun Google: Menambahkan parameter pemilihan akun (select_account) pada alur Google Sign-In, sehingga Anda dapat langsung memilih akun Google yang tersimpan di perangkat tanpa diminta mengetik email dan password secara manual.',
+    ],
+  },
+  {
+    version: '1.3.4',
+    date: '2 November 2026',
+    title: 'Umpan Balik Getaran Native (Haptic & Vibration) & Pengujian Respon',
+    highlights: [
+      'Getaran Respon Native Universal: Menambahkan integrasi Vibration native Android/iOS pada keypad angka modal transaksi, sehingga setiap ketukan angka memberikan getaran taktil nyata yang responsif di semua tipe smartphone.',
+      'Getaran Harmonis Simpan Transaksi: Getaran pola ganda (success vibration) bersamaan dengan nada audio kristal saat transaksi berhasil disimpan.',
+      'Tombol Uji Coba Getaran di Pengaturan: Anda kini dapat langsung mencoba dan merasakan perbedaan getaran ketukan keypad dan getaran simpan mutasi langsung dari menu Pengaturan > Notifikasi & Respon.',
+    ],
+  },
+  {
     version: '1.3.3',
     date: '2 November 2026',
     title: 'Persistensi Tema & Sinkronisasi Warna Splash Screen Native',

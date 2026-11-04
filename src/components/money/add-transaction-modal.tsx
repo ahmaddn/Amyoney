@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { CategoryPickerModal } from './category-picker-modal';
 import { audioService } from '@/services/audio-service';
+import { hapticService } from '@/services/haptic-service';
 import { receiptScannerService } from '@/services/receipt-scanner-service';
 import { useAuth } from '@/context/auth-context';
 import { useAppTheme } from '@/context/theme-context';
@@ -128,6 +129,7 @@ export function AddTransactionModal({
 
   // Handler Keypad Angka Bawaan
   const handleKeypadPress = (val: string) => {
+    hapticService.light();
     setErrorMessage('');
     if (val === 'DEL') {
       setAmountStr((prev) => prev.slice(0, -1));
@@ -148,15 +150,18 @@ export function AddTransactionModal({
   const handleSave = () => {
     const cleanAmount = parseInt(amountStr.replace(/[^0-9]/g, ''), 10);
     if (!cleanAmount || cleanAmount <= 0) {
+      hapticService.warning();
       setErrorMessage('Masukkan nominal angka');
       return;
     }
     const activeWalletId = walletId || wallets[0]?.id;
     if (!activeWalletId) {
+      hapticService.warning();
       setErrorMessage('Pilih dompet');
       return;
     }
     if (type === 'transfer' && activeWalletId === toWalletId) {
+      hapticService.warning();
       setErrorMessage('Dompet tujuan harus berbeda');
       return;
     }
@@ -165,8 +170,9 @@ export function AddTransactionModal({
 
     setErrorMessage('');
 
-    // Mainkan efek audio sukses
+    // Mainkan efek audio sukses & getaran native sukses
     audioService.playSuccessSound();
+    hapticService.success();
 
     onSubmit({
       amount: cleanAmount,

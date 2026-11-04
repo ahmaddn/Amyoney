@@ -51,6 +51,10 @@ export default function AuthScreen({ onDismiss }: AuthScreenProps) {
     webClientId: GOOGLE_WEB_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     redirectUri,
+    selectAccount: true,
+    extraParams: {
+      prompt: 'select_account',
+    },
   });
 
   // Listener tanggapan login Google dari browser native / system dialog

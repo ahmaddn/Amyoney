@@ -21,6 +21,8 @@ import { CurrencyCode, SUPPORTED_CURRENCIES } from '@/utils/format';
 import AuthScreen from '@/app/auth';
 import { PatchNotesModal } from '@/components/settings/patch-notes-modal';
 import { Ionicons } from '@expo/vector-icons';
+import { hapticService } from '@/services/haptic-service';
+import { audioService } from '@/services/audio-service';
 
 interface SettingsTabProps {
   onClose?: () => void;
@@ -46,6 +48,13 @@ export function SettingsTab({ onClose }: SettingsTabProps = {}) {
   const [hapticFeedback, setHapticFeedback] = useState(true);
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifStatusMessage, setNotifStatusMessage] = useState<string | null>(null);
+
+  // Inisialisasi status getaran
+  useEffect(() => {
+    hapticService.init().then(() => {
+      setHapticFeedback(hapticService.isEnabled());
+    });
+  }, []);
 
   // Muat status toggle notifikasi tersimpan saat layar dibuka
   useEffect(() => {
@@ -360,19 +369,62 @@ export function SettingsTab({ onClose }: SettingsTabProps = {}) {
           </ThemedText>
         </View>
 
+        {/* Getaran Respon (Haptic & Vibration) */}
         <View style={styles.preferenceRow}>
           <View style={styles.prefTextCol}>
-            <ThemedText style={[styles.prefTitle, { color: colors.text }]}>Respon Suara Konfirmasi</ThemedText>
+            <ThemedText style={[styles.prefTitle, { color: colors.text }]}>Getaran Respon Tombol</ThemedText>
             <ThemedText style={[styles.prefDesc, { color: colors.textSecondary }]}>
-              Efek audio jernih (harmonic chime) saat berhasil menyimpan transaksi atau mutasi kas
+              Sensasi getar halus saat menekan keypad dan simpan transaksi
             </ThemedText>
           </View>
           <Switch
             value={hapticFeedback}
-            onValueChange={setHapticFeedback}
+            onValueChange={(val) => {
+              setHapticFeedback(val);
+              hapticService.setEnabled(val);
+              if (val) hapticService.light();
+            }}
             trackColor={{ false: colors.border, true: colors.brandPrimary }}
           />
         </View>
+
+        {/* Tombol Uji Coba Getaran Langsung */}
+        {hapticFeedback && (
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Uji Coba Getar Ringan"
+              style={[
+                styles.testVibrateBtn,
+                { backgroundColor: colors.backgroundSelected, borderColor: colors.border },
+              ]}
+              onPress={() => hapticService.light()}
+            >
+              <Ionicons name="finger-print-outline" size={14} color={colors.brandPrimary} />
+              <ThemedText style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
+                Tes Ketukan Keypad
+              </ThemedText>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Uji Coba Getar Sukses"
+              style={[
+                styles.testVibrateBtn,
+                { backgroundColor: colors.backgroundSelected, borderColor: colors.border },
+              ]}
+              onPress={() => {
+                hapticService.success();
+                audioService.playSuccessSound();
+              }}
+            >
+              <Ionicons name="checkmark-circle-outline" size={14} color={colors.income} />
+              <ThemedText style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
+                Tes Simpan Transaksi
+              </ThemedText>
+            </Pressable>
+          </View>
+        )}
 
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
@@ -624,5 +676,16 @@ const styles = StyleSheet.create({
   patchNoteBtnText: {
     fontSize: 13,
     fontWeight: '700',
+  },
+  testVibrateBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
   },
 });
